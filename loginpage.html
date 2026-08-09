@@ -1,0 +1,1582 @@
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cash farmer-LOG IN </title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/appwrite@14.0.0"></script>
+    
+    <style>
+        /* --- FONT FACE SETTINGS --- */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            font-family: 'Poppins', 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+            -webkit-touch-callout: none;
+            -webkit-user-select: none;
+            -khtml-user-select: none;
+            -moz-user-select: none;
+            -ms-user-select: none;
+            user-select: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+
+        body {
+            background: linear-gradient(180deg, #5e5ce6 0%, #4a48c5 35%, #ffffff 35%);
+            min-height: 100dvh;
+            display: flex;
+            justify-content: center;
+            overflow: hidden !important; 
+        }
+
+        .container {
+            width: 100%;
+            max-width: 450px;
+            display: flex;
+            flex-direction: column;
+            position: relative;
+            height: 100dvh;
+            overflow: hidden !important; 
+        }
+
+        body.keyboard-open {
+            overflow: hidden !important; 
+        }
+        body.keyboard-open .container {
+            height: 100dvh !important;
+            min-height: 100dvh;
+            overflow: hidden !important; 
+        }
+        body.keyboard-open #signupPage {
+            position: absolute !important;
+            height: 100% !important;
+            min-height: 100% !important;
+        }
+
+        /* --- NOTIFICATION STRIP --- */
+        #notificationStrip {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            background-color: #28a745;
+            color: white;
+            padding: 15px;
+            text-align: center;
+            font-weight: 600;
+            z-index: 1000;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        #notificationStrip i {
+            margin-right: 10px;
+        }
+
+        /* --- Login Styles --- */
+        .header {
+            text-align: center;
+            color: white;
+            padding: 50px 20px 30px;
+        }
+
+        .logo-wrapper {
+            background: rgba(255, 255, 255, 0.2);
+            width: 90px;
+            height: 90px;
+            margin: 0 auto 20px;
+            border-radius: 10px;
+            padding: 0;
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.3);
+            overflow: hidden;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .logo-wrapper img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+
+        .header h1 {
+            font-size: 28px;
+            font-weight: 700;
+            margin-bottom: 8px;
+        }
+
+        .header p {
+            font-size: 15px;
+            opacity: 0.9;
+        }
+
+        .form-card {
+            background: white;
+            border-radius: 40px 40px 0 0;
+            padding: 35px 25px;
+            flex-grow: 1;
+            box-shadow: 0 -10px 20px rgba(0,0,0,0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .input-label {
+            display: block;
+            font-weight: 700;
+            font-size: 14px;
+            margin-bottom: 10px;
+            color: #1a1a1a;
+        }
+
+        .input-field {
+            display: flex;
+            align-items: center;
+            border: 1px solid #f0f0f0; 
+            border-radius: 20px;
+            padding: 18px 15px;
+            margin-bottom: 20px;
+            background: #fafafa;
+        }
+
+        .input-field:focus-within {
+            border-color: #5e5ce6;
+        }
+
+        .input-field input {
+            border: none;
+            outline: none;
+            background: transparent;
+            width: 100%;
+            font-size: 16px;
+            color: #333;
+            -webkit-user-select: text;
+            user-select: text;
+        }
+
+        .input-field input[type="password"] {
+            letter-spacing: -2px; 
+        }
+
+        #signupPage .input-field input[type="password"],
+        #signupPage .input-field input[type="text"] {
+            letter-spacing: 2px !important; 
+        }
+
+        #signupPage .input-field input#referCode {
+            letter-spacing: normal !important;
+        }
+
+        .input-field input::placeholder {
+            font-size: 18px; 
+            color: #aaa;
+            letter-spacing: normal; 
+        }
+
+        .field-icon {
+            color: #999;
+            margin-right: 12px;
+        }
+
+        .login-email-icon {
+            color: #999;
+            margin-right: 10px;
+        }
+        .login-separator {
+            color: #eee;
+            margin-right: 12px;
+            font-weight: 300;
+        }
+
+        .toggle-password {
+            color: #999;
+            cursor: pointer;
+            padding-left: 10px;
+        }
+
+        .btn-signin, .btn-login-capsule, .back-btn {
+            transition: transform 0.1s ease;
+            outline: none;
+        }
+
+        .btn-signin:active, .btn-login-capsule:active, .back-btn:active {
+            transform: scale(0.95);
+        }
+
+        .btn-signin {
+            width: 100%;
+            background: #4a48c5;
+            color: white;
+            border: none;
+            border-radius: 20px; 
+            padding: 20px;
+            font-size: 17px;
+            font-weight: 700;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            gap: 10px;
+            box-shadow: 0 8px 20px rgba(74, 72, 197, 0.2);
+            margin-bottom: 25px;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s, transform 0.1s ease;
+        }
+
+        .btn-signin::after {
+            content: '';
+            position: absolute;
+            top: -50%;
+            left: -60%;
+            width: 20%;
+            height: 200%;
+            background: rgba(255, 255, 255, 0.3);
+            transform: rotate(30deg);
+            transition: none;
+        }
+
+        .btn-signin.clicked::after {
+            animation: infiniteShine 0.8s linear infinite;
+        }
+
+        @keyframes infiniteShine {
+            0% { left: -60%; }
+            100% { left: 150%; }
+        }
+
+        .loader {
+            display: none;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(255,255,255,.3);
+            border-radius: 50%;
+            border-top-color: #fff;
+            animation: spin 1s ease-in-out infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        .btn-signin.loading .btn-text, .btn-signin.loading i {
+            display: none;
+        }
+        .btn-signin.loading .loader {
+            display: block;
+        }
+
+        .new-here {
+            text-align: center;
+            color: #777;
+            font-size: 18px;
+            font-weight: 600;
+            margin-bottom: 15px;
+        }
+
+        .btn-login-capsule {
+            width: 100%;
+            background: #f8f9ff;
+            color: #6c757d; 
+            border: none;
+            border-radius: 50px; 
+            padding: 20px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.02);
+        }
+
+        .btn-login-capsule span.login-link {
+            color: #4a48c5;
+            font-weight: 700;
+            margin-left: 5px;
+        }
+
+        #signupPage {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            transition: transform 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+        }
+
+        .page-active {
+            transform: translateX(0) !important;
+            z-index: 5;
+            visibility: visible;
+        }
+
+        .page-right {
+            transform: translateX(100%);
+            z-index: 10;
+            visibility: hidden;
+        }
+
+        .page-left {
+            transform: translateX(-100%);
+            z-index: 1;
+            visibility: hidden;
+        }
+
+        #signupPage .signup-header {
+            padding: 20px 20px 10px;
+            color: white;
+            text-align: center;
+        }
+
+        #signupPage .signup-title {
+            font-size: 26px;
+            font-weight: 800;
+            margin-bottom: 15px;
+        }
+
+        #signupPage .signup-icon {
+            width: 55px;
+            height: 55px;
+            border-radius: 15px;
+            margin: 0 auto 10px;
+            font-size: 24px;
+        }
+
+        #signupPage .form-card {
+            padding: 20px 25px;
+        }
+
+        #signupPage .input-field {
+            padding: 14px 15px;
+            margin-bottom: 15px;
+        }
+
+        #signupPage .btn-signin {
+            padding: 16px;
+            margin-bottom: 15px;
+        }
+
+        #signupPage {
+            background: #5e5ce6;
+            min-height: 100dvh;
+        }
+
+        .signup-header {
+            padding: 20px;
+            color: white;
+            text-align: center;
+        }
+
+        .top-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+
+        .back-btn {
+            background: rgba(255,255,255,0.2);
+            width: 40px;
+            height: 40px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+        }
+
+        .step-pill {
+            background: rgba(255,255,255,0.2);
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-size: 12px;
+        }
+
+        .signup-icon {
+            background: rgba(255,255,255,0.1);
+            width: 70px;
+            height: 70px;
+            border-radius: 15px;
+            margin: 0 auto 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 30px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .signup-title {
+            font-size: 32px;
+            font-weight: 800;
+            margin-bottom: 30px;
+        }
+
+        .terms-text {
+            font-size: 13px;
+            color: #666;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            margin-bottom: 25px;
+        }
+
+        .terms-text a {
+            color: #4a48c5;
+            text-decoration: none;
+            font-weight: 700;
+        }
+
+        .checkbox-custom {
+            width: 22px;
+            height: 22px;
+            cursor: pointer;
+            accent-color: #4a48c5;
+            transition: transform 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+        }
+
+        .secure-banner {
+            background-color: #e6f7ef; 
+            border-radius: 12px;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 10px;
+            margin-top: auto;
+            border: 1px solid #c2e9d7;
+            width: 100%;
+        }
+
+        .secure-banner i {
+            color: #00a65a; 
+            font-size: 16px;
+        }
+
+        .secure-banner span {
+            color: #00a65a; 
+            font-size: 14px;
+            font-weight: 600;
+        }
+
+        /* --- Account Created Success Popup --- */
+        .success-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .success-popup-overlay.show-popup {
+            display: flex;
+        }
+
+        .success-popup-box {
+            background-color: #FFFFFF;
+            color: #1a1a1a;
+            padding: 35px 25px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 360px;
+            width: 100%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        }
+
+        .success-icon-circle {
+            width: 70px;
+            height: 70px;
+            background-color: #e8f9ee;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 18px;
+        }
+
+        .success-icon-circle i {
+            font-size: 34px;
+            color: #28a745;
+        }
+
+        .success-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #28a745;
+            margin-bottom: 10px;
+        }
+
+        .success-subtext {
+            font-size: 1rem;
+            font-weight: 500;
+            color: #444444;
+            line-height: 1.5;
+            margin-bottom: 25px;
+        }
+
+        .success-btn-row {
+            display: flex;
+            gap: 12px;
+        }
+
+        .btn-cancel-popup, .btn-download-popup {
+            flex: 1;
+            border: none;
+            border-radius: 16px;
+            padding: 14px 10px;
+            font-size: 15px;
+            font-weight: 700;
+            cursor: pointer;
+        }
+
+        .btn-cancel-popup {
+            background-color: #f1f1f4;
+            color: #555555;
+        }
+
+        .btn-download-popup {
+            background-color: #8A3FFC;
+            color: #FFFFFF;
+        }
+        /* ================================================ */
+        /* --- નવો કોડ: Index.html નું આખું content, હવે અહીં જ (કોઈ redirect વગર) --- */
+        /* ================================================ */
+        #indexPage {
+            display: none;
+            position: fixed;
+            inset: 0;
+            overflow-y: auto;
+            background-color: #000000;
+            z-index: 100002;
+        }
+
+        #indexPage.show-index {
+            display: block;
+        }
+
+        #indexPage .index-inner {
+            overflow-x: hidden;
+            max-width: 100%;
+            width: 100%;
+            color: #FFFFFF;
+            font-family: 'Poppins', sans-serif;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100%;
+            padding-bottom: 340px;
+            box-sizing: border-box;
+        }
+
+        .corner-wrapper {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            display: flex;
+            flex-direction: column;
+            gap: 11px;
+            max-width: calc(100vw - 40px);
+            box-sizing: border-box;
+            align-items: center;
+        }
+
+        .corner-logo-container {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            width: 100%;
+        }
+        
+        .logo-group {
+            display: flex;
+            align-items: center;
+        }
+        .logo-group img {
+            width: 45px;
+            height: 45px;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 2px solid #000000;
+        }
+        .logo-group img:not(:first-child) {
+            margin-left: -15px;
+        }
+
+        .divider {
+            color: #FFFFFF;
+            font-size: 3rem;
+            font-weight: 300;
+            line-height: 1;
+        }
+        
+        .text-block {
+            display: flex;
+            flex-direction: column;
+        }
+        .corner-logo-container span {
+            color: #FFFFFF;
+            font-weight: bold;
+            font-size: 1.1rem;
+            line-height: 1.2;
+        }
+
+        .download-badge {
+            color: #FFFFFF;
+            font-size: 1rem;
+            white-space: nowrap;
+        }
+
+        .single-main-box {
+            border: 20px solid #FFFFFF;
+            padding: 15px 25px;
+            margin-top: 15px;
+            display: flex;
+            flex-direction: row;
+            flex-wrap: wrap;
+            gap: 30px;
+            max-width: calc(100vw - 80px);
+            box-sizing: border-box;
+        }
+
+        .content-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .content-item .label {
+            font-size: 1.2rem;
+            font-weight: bold;
+            margin-bottom: 5px;
+            white-space: nowrap;
+        }
+
+        .content-item .data {
+            font-size: 1.6rem;
+            font-weight: bold;
+            color: #FFD700;
+            white-space: nowrap;
+        }
+
+        .stats-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 15px;
+            margin-top: 20px;
+            width: 100%;
+        }
+
+        .stats-line {
+            display: flex;
+            flex-direction: row;
+            justify-content: center;
+            align-items: center;
+            gap: 20px;
+            width: 100%;
+        }
+
+        .stats-item {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .stats-item .num {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #FFFFFF;
+            white-space: nowrap;
+        }
+
+        .stats-item .txt {
+            font-size: 0.9rem;
+            color: #FFFFFF;
+            margin-top: 5px;
+            white-space: nowrap;
+        }
+
+        .stats-divider {
+            color: #FFFFFF;
+            font-size: 2.5rem;
+            font-weight: 300;
+            line-height: 1;
+            align-self: center;
+        }
+
+        .payment-photo {
+            margin-top: 15px;
+            width: 100%;
+            max-width: 550px;
+            height: auto;
+            display: block;
+            border-left: 14px solid #FFFFFF;
+            border-right: 14px solid #FFFFFF;
+            border-top: none;
+            border-bottom: none;
+            border-radius: 14px;
+            box-sizing: border-box;
+        }
+
+        .photo-style-green-box {
+            background-color: #f2f6ff;
+            border: 1px solid #d0daff;
+            border-radius: 24px;
+            padding: 18px 22px;
+            margin-top: 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            width: 100%;
+            max-width: 550px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.2);
+        }
+
+        .green-box-icon {
+            background-color: #dbecff;
+            border-radius: 50%;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .green-box-icon svg {
+            width: 22px;
+            height: 22px;
+            fill: #3b66f5; 
+        }
+
+        .green-text {
+            color: #00bf10;
+            font-size: 1.1rem;
+            font-weight: 600;
+            text-align: left; 
+            line-height: 1.4;
+            margin: 0;
+        }
+
+        .image-slider-container {
+            width: 100%;
+            max-width: 550px;
+            margin-top: 20px;
+            margin-bottom: 150px;
+            border-radius: 24px;
+            overflow: hidden;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.35);
+            aspect-ratio: 720 / 1280;
+            position: relative;
+            box-sizing: border-box;
+        }
+
+        .image-slider-track {
+            display: flex;
+            width: 700%;
+            height: 100%;
+            transform: translateX(-14.2857%);
+            touch-action: pan-y;
+            cursor: grab;
+        }
+
+        .image-slider-track.sliding {
+            transition: transform 0.6s ease-in-out;
+        }
+
+        .image-slider-track img {
+            width: calc(100% / 7);
+            height: 100%;
+            object-fit: contain;
+            background-color: #FFFFFF;
+            padding: 70px 40px;
+            box-sizing: border-box;
+            flex-shrink: 0;
+            display: block;
+            -webkit-user-drag: none;
+            user-select: none;
+        }
+
+        .notice-bar {
+            background-color: #8A3FFC;
+            border-radius: 15px;
+            padding: 10px 15px;
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            margin-top: 25px;
+            width: 100%;
+            max-width: 500px;
+            box-sizing: border-box;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
+        }
+
+        .notice-icon-box {
+            background-color: rgba(255, 255, 255, 0.2);
+            border-radius: 10px;
+            padding: 6px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+        }
+
+        .notice-icon-box svg {
+            width: 20px;
+            height: 20px;
+            fill: #FFFFFF;
+        }
+
+        .notice-text-container {
+            overflow: hidden;
+            width: 100%;
+            display: flex;
+            align-items: center;
+        }
+
+        .notice-text-container marquee {
+            color: #FFFFFF;
+            font-size: 1rem;
+            font-weight: 500;
+            white-space: nowrap;
+        }
+
+        .footer-fixed-container {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            width: 100%;
+            background: linear-gradient(to top, rgba(0,0,0,1) 0%, rgba(0,0,0,0.9) 50%, rgba(0,0,0,0) 100%);
+            padding-top: 40px; 
+            padding-bottom: 20px; 
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 9999;
+        }
+
+        .download-btn {
+            background-color: #8A3FFC;
+            color: #FFFFFF;
+            font-size: 1.3rem;
+            font-weight: bold;
+            padding: 15px 20px;
+            border: none;
+            border-radius: 50px;
+            cursor: pointer;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.6);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 12px;
+            text-decoration: none;
+            width: 85%;
+            max-width: 400px;
+            margin-bottom: 60px;
+            transition: transform 0.2s;
+            white-space: nowrap;
+            font-size: clamp(0.8rem, 4.5vw, 1.3rem);
+        }
+
+        .download-btn:active {
+            transform: scale(0.98);
+        }
+
+        .download-btn svg {
+            width: 22px;
+            height: 22px;
+            fill: #FFFFFF;
+        }
+
+        .custom-popup-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-color: rgba(0, 0, 0, 0.85);
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            z-index: 100000;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .custom-popup-overlay.show-popup {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .custom-popup-box {
+            background-color: #FFFFFF;
+            color: #000000;
+            padding: 35px 25px;
+            border-radius: 24px;
+            text-align: center;
+            max-width: 360px;
+            width: 85%;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+            transform: scale(0.7);
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        .custom-popup-overlay.show-popup .custom-popup-box {
+            transform: scale(1);
+        }
+
+        .popup-text-line {
+            font-size: 1.15rem;
+            font-weight: 600;
+            color: #333333;
+            margin: 8px 0;
+            line-height: 1.4;
+            font-family: 'Poppins', sans-serif;
+        }
+        
+        .popup-text-line.highlight {
+            color: #8A3FFC;
+            font-size: 1.3rem;
+            font-weight: 700;
+        }
+    </style>
+</head>
+<body oncontextmenu="return false;">
+
+    <div id="notificationStrip">
+        <i class="fas fa-check-circle"></i> <span id="stripMessage"></span>
+    </div>
+
+    <div class="container">
+        <div id="signupPage" class="page-active">
+            <div class="signup-header">
+                <div class="signup-icon">
+                    <i class="fas fa-user-plus"></i>
+                </div>
+                <div class="signup-title">Create Account</div>
+            </div>
+
+            <div class="form-card">
+                <form id="signupForm">
+                    <label class="input-label">Your Nickname</label>
+                    <div class="input-field">
+                        <i class="fas fa-user field-icon"></i>
+                        <input type="text" placeholder="Enter nickname" required id="signupNickname">
+                    </div>
+
+                    <label class="input-label">Email</label>
+                    <div class="input-field">
+                        <i class="fas fa-envelope field-icon"></i>
+                        <input type="email" placeholder="Enter email address" required id="userEmail">
+                    </div>
+
+                    <label class="input-label">Password</label>
+                    <div class="input-field" style="margin-bottom: 5px;">
+                        <i class="fas fa-lock field-icon"></i>
+                        <input type="password" placeholder="Create a password" required id="signupPassword">
+                        <i class="far fa-eye toggle-password" onclick="togglePass('signupPassword', this)"></i>
+                    </div>
+                    <div id="passwordErrorLine" style="color: #dc3545; font-size: 12px; font-weight: 600; margin-bottom: 15px; margin-left: 5px; display: none;">
+                        Password must be at least 7 characters long
+                    </div>
+
+                    <label class="input-label">Refer Code (Optional)</label>
+                    <div class="input-field">
+                        <i class="fas fa-code field-icon"></i>
+                        <input type="text" placeholder="Enter refer code" id="referCode">
+                    </div>
+
+                    <div class="terms-text">
+                        <input type="checkbox" class="checkbox-custom" required id="signupTerms">
+                        <span>I agree to the <a href="#">Terms</a> & <a href="#">Privacy Policy</a></span>
+                    </div>
+
+                    <button type="button" class="btn-signin" id="signupBtn">
+                        <span class="btn-text">Finish account</span>
+                        <div class="loader"></div>
+                    </button>
+                </form>
+
+                <div class="secure-banner">
+                    <i class="fas fa-lock"></i>
+                    <span>Your details are always secured and encrypted.</span>
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+    <div id="indexPage">
+        <div class="index-inner">
+            <div class="corner-wrapper">
+                <div class="corner-logo-container">
+                    <div class="logo-group">
+                        <img src="https://i.ibb.co/jYrYVBW/logo.png" alt="Logo 1">
+                    </div>
+                    <div class="divider">|</div>
+                    <div class="text-block">
+                        <span>CASH FARMER</span>
+                        <span>INSTANT UPI</span>
+                    </div>
+                </div>
+
+                <div class="notice-bar">
+                    <div class="notice-icon-box">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M12 4L5 9H2v6h3l7 5V4zm6.5 8c0-2.22-1.28-4.14-3.13-5.04v10.07c1.85-.9 3.13-2.82 3.13-5.03zM15.37 3.03v2.02c3.15.84 5.5 3.71 5.5 7.14s-2.35 6.3-5.5 7.14v2.02c4.25-.88 7.5-4.58 7.5-9.16s-3.25-8.28-7.5-9.16z"/>
+                        </svg>
+                    </div>
+                    <div class="notice-text-container">
+                        <marquee behavior="scroll" direction="left" scrollamount="4">Just explore 5 minutes and withdraw, you will earn money.</marquee>
+                    </div>
+                </div>
+
+                <div class="stats-container">
+                    <div class="stats-line">
+                        <div class="stats-item">
+                            <span class="num" id="stat-payment">₹0</span>
+                            <span class="txt">User total payment</span>
+                        </div>
+
+                        <div class="stats-divider">|</div>
+
+                        <div class="stats-item">
+                            <span class="num" id="stat-active">0+</span>
+                            <span class="txt">total activ user</span>
+                        </div>
+                    </div>
+
+                    <div class="stats-line">
+                        <div class="stats-item">
+                            <span class="num" id="stat-new">0+</span>
+                            <span class="txt">daily new user</span>
+                        </div>
+
+                        <div class="stats-divider">|</div>
+
+                        <div class="stats-item">
+                            <span class="num" id="stat-download">0+</span>
+                            <span class="txt">total download</span>
+                        </div>
+                    </div>
+                </div>
+
+                <img src="https://i.ibb.co/XxhbdGhk/2010790-upi-1.jpg" alt="Payment Status" class="payment-photo">
+
+                <div class="photo-style-green-box">
+                    <div class="green-box-icon">
+                        <svg viewBox="0 0 24 24">
+                            <path d="M21 18v1c0 1.1-.9 2-2 2H5c-1.11 0-2-.9-2-2V5c0-1.1.89-2 2-2h14c1.1 0 2 .9 2 2v1h-9c-1.11 0-2-.9-2 2v8c0 1.1.89 2 2 2h9zm-9-2h10V8H12v8zm4-2.5c-.83 0-1.5-.67-1.5-1.5s.67-1.5 1.5-1.5 1.5.67 1.5 1.5-.67 1.5-1.5 1.5z"/>
+                        </svg>
+                    </div>
+                    <div class="green-text">instant Withdrawal to any UPI and any money transfer app</div>
+                </div>
+
+                <div class="image-slider-container" id="imageSliderContainer">
+                    <div class="image-slider-track" id="imageSliderTrack">
+                        <img src="https://i.ibb.co/gLZr5Tnd/file-00000000347c81fb9bd0f690cfa0088d.png" alt="Slide 5 repeat">
+                        <img src="https://i.ibb.co/LXY3VzNJ/file-000000002b28820780a8da780c9e442f.png" alt="Slide 1">
+                        <img src="https://i.ibb.co/Xxjttz4h/file-00000000b5e481fa9ab7e55e95d0ba55.png" alt="Slide 2">
+                        <img src="https://i.ibb.co/gFPbJwwB/file-00000000082881fabc546b95209fe749.png" alt="Slide 3">
+                        <img src="https://i.ibb.co/WvVCwZW8/file-0000000089f4820784029aa9bdf53d59.png" alt="Slide 4">
+                        <img src="https://i.ibb.co/gLZr5Tnd/file-00000000347c81fb9bd0f690cfa0088d.png" alt="Slide 5">
+                        <img src="https://i.ibb.co/LXY3VzNJ/file-000000002b28820780a8da780c9e442f.png" alt="Slide 1 repeat">
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <div class="custom-popup-overlay" id="appPopupOverlay">
+            <div class="custom-popup-box">
+                <p class="popup-text-line highlight">The app is not fully ready yet 📱🚧</p>
+                <p class="popup-text-line">You'll need to wait just 3 more days ⏳✨</p>
+                <p class="popup-text-line" style="font-weight: 700;">Only 3 days left 😍🔥</p>
+                <p class="popup-text-line" style="color: #e11d48; margin-top: 15px;">Thank you so much for your support ❤️🙌💖</p>
+            </div>
+        </div>
+
+        <div class="footer-fixed-container">
+            <a href="https://fra.cloud.appwrite.io/v1/storage/buckets/323/files/6a78033f000cc1dc6db2/download?project=6985aa6e0018fb6d3ef8&impersonateuserid=&mode=admin" class="download-btn" id="downloadBtnLink">
+                <svg viewBox="0 0 24 24">
+                    <path d="M19.35 10.04C18.67 6.59 15.64 4 12 4 9.11 4 6.6 5.64 5.35 8.04 2.34 8.36 0 10.91 0 14c0 3.31 2.69 6 6 6h13c2.76 0 5-2.24 5-5 0-2.64-2.05-4.78-4.65-4.96zM17 13l-5 5-5-5h3V9h4v4h3z"/>
+                </svg>
+                Download ( Cash FarmeaR )
+            </a>
+        </div>
+    </div>
+
+    <div class="success-popup-overlay" id="successPopupOverlay">
+        <div class="success-popup-box">
+            <div class="success-icon-circle">
+                <i class="fas fa-check"></i>
+            </div>
+            <div class="success-title">Account Created Successfully</div>
+            <div class="success-subtext">Please download the app and login</div>
+            <div class="success-btn-row">
+                <button type="button" class="btn-cancel-popup" id="successCancelBtn">Cancel</button>
+                <button type="button" class="btn-download-popup" id="successDownloadBtn">Download</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const client = new Appwrite.Client();
+        client
+            .setEndpoint('https://fra.cloud.appwrite.io/v1')
+            .setProject('6985aa6e0018fb6d3ef8');
+
+        const databases = new Appwrite.Databases(client);
+        const DATABASE_ID = '6a0c59ac002413005872';
+        const COLLECTION_ID = 'user_information';
+
+        window.oncontextmenu = function(event) {
+            event.preventDefault();
+            event.stopPropagation();
+            return false;
+        };
+
+        window.history.replaceState({ page: 'signupPage' }, "", "#/signupPage");
+
+        // --- નવો કોડ: refer code ને બહાર સ્ટોર કરવા માટે વેરિયેબલ ---
+        let referCodeForRedirect = "";
+
+        // --- નવો કોડ: માત્ર બરાબર (=) પછીનો જ ભાગ બોક્સમાં સેટ કરશે ---
+        (function autoFillReferFromURL() {
+            const params = new URLSearchParams(window.location.search);
+            let refFromUrl = params.get('ref') || params.get('refer') || params.get('referCode');
+            
+            if (!refFromUrl) {
+                const path = window.location.pathname;
+                const pathParts = path.split('/');
+                const lastPart = pathParts[pathParts.length - 1];
+                if (lastPart && lastPart !== 'inviteRefer' && lastPart !== 'loginpage.html') {
+                    refFromUrl = decodeURIComponent(lastPart);
+                }
+            }
+            
+            if (refFromUrl) {
+                if (refFromUrl.endsWith('/')) {
+                    refFromUrl = refFromUrl.slice(0, -1);
+                }
+                
+                // જો કોડમાં ક્યાંય પણ '=' હોય, તો બરાબર પછીનો જ ભાગ ફિલ્ટર કરો
+                if (refFromUrl.includes('=')) {
+                    refFromUrl = refFromUrl.split('=').pop();
+                }
+                
+                referCodeForRedirect = refFromUrl;
+                document.getElementById('referCode').value = refFromUrl;
+            }
+        })();
+
+        // --- ફેરફાર: index.html પર જવાને બદલે, એ જ પેજ પર indexPage section બતાવવાનું (કોઈ redirect નહીં) ---
+        let autoRedirectTimer = null;
+        function goToIndexAfterSignup() {
+            document.getElementById('successPopupOverlay').classList.remove('show-popup');
+            document.getElementById('signupPage').style.display = 'none';
+            document.getElementById('indexPage').classList.add('show-index');
+        }
+
+        // --- નવો કોડ: Success popup ના Download અને Cancel બટન ---
+        document.getElementById('successDownloadBtn').addEventListener('click', function() {
+            clearTimeout(autoRedirectTimer);
+            goToIndexAfterSignup();
+        });
+
+        document.getElementById('successCancelBtn').addEventListener('click', function() {
+            clearTimeout(autoRedirectTimer);
+            document.getElementById('successPopupOverlay').classList.remove('show-popup');
+            clearSignupForm();
+        });
+
+        // --- નવો કોડ: indexPage ના stats ની animation (index.html માંથી) ---
+        const basePayment = 9726;
+        const baseActiveUser = 6927;
+        const baseNewUser = 437;
+        const baseDownload = 10737;
+
+        let statPayment = basePayment;
+        let statActiveUser = baseActiveUser;
+        let statNewUser = baseNewUser;
+        let statDownload = baseDownload;
+
+        function animateValue(id, start, end, duration, prefix, suffix) {
+            let obj = document.getElementById(id);
+            if (!obj) return;
+            let range = end - start;
+            let minTimer = 30;
+            let stepTime = Math.abs(Math.floor(duration / range));
+            stepTime = Math.max(stepTime, minTimer);
+            let startTimeAnimate = new Date().getTime();
+            let endTimeAnimate = startTimeAnimate + duration;
+            let timer;
+
+            function run() {
+                let now = new Date().getTime();
+                let remaining = Math.max((endTimeAnimate - now) / duration, 0);
+                let value = Math.round(end - (remaining * range));
+                obj.innerText = prefix + value + suffix;
+                if (value == end) {
+                    clearInterval(timer);
+                }
+            }
+            timer = setInterval(run, stepTime);
+        }
+
+        animateValue('stat-payment', 0, statPayment, 1500, '₹', '');
+        animateValue('stat-active', 0, statActiveUser, 1500, '', '+');
+        animateValue('stat-new', 0, statNewUser, 1500, '', '+');
+        animateValue('stat-download', 0, statDownload, 1500, '', '+');
+
+        setInterval(() => {
+            statPayment += 1;
+            const el = document.getElementById('stat-payment');
+            if (el) el.innerText = '₹' + statPayment;
+        }, 108000);
+
+        setInterval(() => {
+            statActiveUser += 1;
+            const el = document.getElementById('stat-active');
+            if (el) el.innerText = statActiveUser + '+';
+        }, 288000);
+
+        setInterval(() => {
+            statNewUser += 1;
+            const el = document.getElementById('stat-new');
+            if (el) el.innerText = statNewUser + '+';
+        }, 288000);
+
+        setInterval(() => {
+            statDownload += 1;
+            const el = document.getElementById('stat-download');
+            if (el) el.innerText = statDownload + '+';
+        }, 46100);
+
+        // --- Image Slider: hold each photo, then slide to next (right to left), loop seamlessly.
+        // Also supports manual swipe: swipe left = next, swipe right = previous. ---
+        (function initImageSlider() {
+            const track = document.getElementById('imageSliderTrack');
+            const container = document.getElementById('imageSliderContainer');
+            if (!track || !container) return;
+
+            const slideWidthPercent = 100 / 7; // 7 slides total (dup-last, s1..s5, dup-first)
+            const firstRealIndex = 1;
+            const lastRealIndex = 5;
+            let slideIndex = firstRealIndex;
+            const holdTime = 2500;
+            const slideTime = 600;
+            let autoplayTimer = null;
+            let isDragging = false;
+            let startX = 0;
+            let currentTranslate = -slideIndex * slideWidthPercent;
+
+            function setTransform(withTransition) {
+                track.classList.toggle('sliding', withTransition);
+                track.style.transform = 'translateX(' + currentTranslate + '%)';
+            }
+
+            function goToSlide(newIndex) {
+                slideIndex = newIndex;
+                currentTranslate = -slideIndex * slideWidthPercent;
+                setTransform(true);
+            }
+
+            function handleTransitionSnap() {
+                if (slideIndex > lastRealIndex) {
+                    slideIndex = firstRealIndex;
+                    currentTranslate = -slideIndex * slideWidthPercent;
+                    setTransform(false);
+                } else if (slideIndex < firstRealIndex) {
+                    slideIndex = lastRealIndex;
+                    currentTranslate = -slideIndex * slideWidthPercent;
+                    setTransform(false);
+                }
+            }
+
+            track.addEventListener('transitionend', handleTransitionSnap);
+
+            function goNext() {
+                goToSlide(slideIndex + 1);
+            }
+
+            function goPrev() {
+                goToSlide(slideIndex - 1);
+            }
+
+            function startAutoplay() {
+                stopAutoplay();
+                autoplayTimer = setInterval(goNext, holdTime + slideTime);
+            }
+
+            function stopAutoplay() {
+                if (autoplayTimer) {
+                    clearInterval(autoplayTimer);
+                    autoplayTimer = null;
+                }
+            }
+
+            // Touch swipe support
+            container.addEventListener('touchstart', (e) => {
+                isDragging = true;
+                startX = e.touches[0].clientX;
+                stopAutoplay();
+                track.classList.remove('sliding');
+            }, { passive: true });
+
+            container.addEventListener('touchmove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.touches[0].clientX - startX;
+                const containerWidth = container.offsetWidth;
+                const deltaPercent = (deltaX / containerWidth) * slideWidthPercent;
+                track.style.transform = 'translateX(' + (currentTranslate + deltaPercent) + '%)';
+            }, { passive: true });
+
+            container.addEventListener('touchend', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                const deltaX = e.changedTouches[0].clientX - startX;
+                const swipeThreshold = 40;
+
+                if (deltaX <= -swipeThreshold) {
+                    goNext();
+                } else if (deltaX >= swipeThreshold) {
+                    goPrev();
+                } else {
+                    setTransform(true);
+                }
+                startAutoplay();
+            });
+
+            // Mouse drag support (desktop)
+            container.addEventListener('mousedown', (e) => {
+                isDragging = true;
+                startX = e.clientX;
+                stopAutoplay();
+                track.classList.remove('sliding');
+                track.style.cursor = 'grabbing';
+            });
+
+            window.addEventListener('mousemove', (e) => {
+                if (!isDragging) return;
+                const deltaX = e.clientX - startX;
+                const containerWidth = container.offsetWidth;
+                const deltaPercent = (deltaX / containerWidth) * slideWidthPercent;
+                track.style.transform = 'translateX(' + (currentTranslate + deltaPercent) + '%)';
+            });
+
+            window.addEventListener('mouseup', (e) => {
+                if (!isDragging) return;
+                isDragging = false;
+                track.style.cursor = 'grab';
+                const deltaX = e.clientX - startX;
+                const swipeThreshold = 40;
+
+                if (deltaX <= -swipeThreshold) {
+                    goNext();
+                } else if (deltaX >= swipeThreshold) {
+                    goPrev();
+                } else {
+                    setTransform(true);
+                }
+                startAutoplay();
+            });
+
+            setTransform(false);
+            startAutoplay();
+        })();
+
+        function togglePass(inputId, toggleIcon) {
+            const passInput = document.getElementById(inputId);
+            if (passInput.type === 'password') {
+                passInput.type = 'text';
+                toggleIcon.classList.remove('fa-eye');
+                toggleIcon.classList.add('fa-eye-slash');
+            } else {
+                passInput.type = 'password';
+                toggleIcon.classList.remove('fa-eye-slash');
+                toggleIcon.classList.add('fa-eye');
+            }
+        }
+
+        function clearSignupForm() {
+            document.getElementById('signupNickname').value = "";
+            document.getElementById('userEmail').value = "";
+            document.getElementById('signupPassword').value = "";
+            document.getElementById('referCode').value = "";
+            document.getElementById('signupTerms').checked = false;
+            document.getElementById('passwordErrorLine').style.display = 'none';
+        }
+
+        // --- ફેરફાર: હવે ફક્ત signupPage જ છે, બીજું કોઈ page navigation જરૂરી નથી ---
+        document.getElementById('signupPage').className = 'page-active';
+
+        document.getElementById('signupPassword').addEventListener('input', function() {
+            const errorLine = document.getElementById('passwordErrorLine');
+            if (this.value.length >= 4 && this.value.length < 7) {
+                errorLine.style.display = 'block';
+            } else {
+                errorLine.style.display = 'none';
+            }
+        });
+
+        const inputs = document.querySelectorAll('input');
+        inputs.forEach(input => {
+            input.addEventListener('focus', () => {
+                document.body.classList.add('keyboard-open');
+                setTimeout(() => {
+                    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+                }, 300);
+            });
+            input.addEventListener('blur', () => {
+                setTimeout(() => {
+                    if (document.activeElement.tagName !== 'INPUT') {
+                        document.body.classList.remove('keyboard-open');
+                        window.scrollTo(0, 0);
+                        document.body.scrollTop = 0;
+                        document.documentElement.scrollTop = 0;
+                        document.querySelector('.container').scrollTop = 0;
+                        document.getElementById('signupPage').scrollTop = 0;
+                    }
+                }, 200);
+            });
+        });
+
+        function showStrip(message, bgColor = "#28a745") {
+            const strip = document.getElementById('notificationStrip');
+            const icon = strip.querySelector('i');
+            if(bgColor === "#28a745") {
+                icon.className = "fas fa-check-circle";
+            } else if(bgColor === "#ffb300") {
+                icon.className = "fas fa-exclamation-triangle";
+            } else {
+                icon.className = "fas fa-exclamation-circle";
+            }
+            strip.style.backgroundColor = bgColor;
+            document.getElementById('stripMessage').innerText = message;
+            strip.style.display = 'block';
+            setTimeout(() => { strip.style.display = 'none'; }, 3500);
+        }
+
+        document.getElementById('signupBtn').addEventListener('click', function(e) {
+            const signupFormEl = document.getElementById('signupForm');
+            if (!signupFormEl.checkValidity()) {
+                signupFormEl.reportValidity();
+                return;
+            }
+            const nicknameValue = document.getElementById('signupNickname').value;
+            const emailValue = document.getElementById('userEmail').value.trim();
+            const passwordValue = document.getElementById('signupPassword').value;
+            // --- નવો કોડ: Refer Code field વાંચ્યો ---
+            const referCodeValue = document.getElementById('referCode').value.trim();
+            
+            if (passwordValue.length < 7) {
+                showStrip("Error", "#dc3545");
+                return;
+            }
+
+            const btn = document.getElementById('signupBtn');
+            btn.classList.add('clicked');
+            btn.classList.add('loading');
+
+            databases.listDocuments(
+                DATABASE_ID,
+                COLLECTION_ID,
+                [
+                    Appwrite.Query.equal('user_gmail_account', emailValue)
+                ]
+            ).then(response => {
+                if (response.documents.length > 0) {
+                    btn.classList.remove('loading', 'clicked');
+                    showStrip("Email already registered!", "#dc3545");
+                } else {
+                    // --- નવો કોડ: જો referCode આપ્યો હોય તો પહેલા ચેક કરો કે એ code ખરેખર અસ્તિત્વમાં છે કે નહીં ---
+                    if (referCodeValue) {
+                        databases.listDocuments(
+                            DATABASE_ID,
+                            COLLECTION_ID,
+                            [
+                                Appwrite.Query.equal('user_refer_code', referCodeValue)
+                            ]
+                        ).then(referrerRes => {
+                            if (referrerRes.documents.length === 0) {
+                                // કોડ ખોટો/અસ્તિત્વ વગરનો છે
+                                btn.classList.remove('loading', 'clicked');
+                                showStrip("Invalid refer code", "#dc3545");
+                                return;
+                            }
+                            const referrerEmail = referrerRes.documents[0].user_gmail_account;
+                            if (referrerEmail === emailValue) {
+                                // જાતે પોતાનો જ કોડ વાપરી ન શકાય
+                                btn.classList.remove('loading', 'clicked');
+                                showStrip("You cannot use your own refer code", "#dc3545");
+                                return;
+                            }
+                            createNewUserDoc(nicknameValue, emailValue, passwordValue, referCodeValue, btn);
+                        }).catch(err => {
+                            btn.classList.remove('loading', 'clicked');
+                            alert(err.message || err);
+                            showStrip(err.message || err, "#dc3545");
+                        });
+                    } else {
+                        createNewUserDoc(nicknameValue, emailValue, passwordValue, "", btn);
+                    }
+                }
+            }).catch(err => {
+                btn.classList.remove('loading', 'clicked');
+                alert(err.message || err);
+                showStrip(err.message || err, "#dc3545");
+            });
+        });
+
+        // --- નવો કોડ: User document બનાવવાનું અલગ function, જેથી referred_by field પણ save થાય ---
+        function createNewUserDoc(nicknameValue, emailValue, passwordValue, referCodeValue, btn) {
+            databases.createDocument(
+                DATABASE_ID,
+                COLLECTION_ID,
+                Appwrite.ID.unique(),
+                {
+                    user_nickname: nicknameValue,
+                    user_gmail_account: emailValue,
+                    user_password: passwordValue,
+                    referred_by: referCodeValue || ""
+                }
+            ).then(res => {
+                btn.classList.remove('loading', 'clicked');
+                document.getElementById('successPopupOverlay').classList.add('show-popup');
+                // --- નવો કોડ: Chrome ના "Save Password" પ્રોમ્પ્ટના કારણે button tap ચૂકી જાય તો પણ,
+                // 2.5 સેકન્ડમાં આપોઆપ index.html પર જતું રહે ---
+                autoRedirectTimer = setTimeout(goToIndexAfterSignup, 2500);
+            }).catch(err => {
+                btn.classList.remove('loading', 'clicked');
+                alert(err.message || err);
+                showStrip(err.message || err, "#dc3545");
+            });
+        }
+
+    </script>
+</body> 
+</html>

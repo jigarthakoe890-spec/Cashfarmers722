@@ -91,7 +91,7 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     success, err = add_user_to_appwrite(user_id)
     
     if success:
-        await update.message.reply_text("હેલો! બોટમાં તમારું સ્વાગત છે.")
+        await update.message.reply_text("Welcome! 🌟 You are super important to us, and we're always here for you! ✨")
     else:
         await update.message.reply_text(f"⚠️ Appwrite Add Error:\n`{err}`", parse_mode="Markdown")
 
@@ -111,6 +111,89 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             target_user_id = None
             
             # Safe attribute check for new python-telegram-bot versions
+            forward_from = getattr(reply_msg, 'forward_from', None)
+            forward_origin = getattr(reply_msg, 'forward_origin', None)
+            
+            if forward_from:
+                target_user_id = forward_from.id
+            elif forward_origin and hasattr(forward_origin, 'sender_user'):
+                target_user_id = forward_origin.sender_user.id
+            
+            if target_user_id:
+                try:
+                    await context.bot.copy_message(
+                        chat_id=int(target_user_id),
+                        from_chat_id=OWNER_ID,
+                        message_id=update.message.message_id
+                    )
+                    await update.message.reply_text(f"✅ યુઝર ({target_user_id}) ને રિપ્લાય મોકલાઈ ગયો.")
+                    return
+                except Exception as e:
+                    await update.message.reply_text(f"❌ Telegram Copy Error:\n`{e}`", parse_mode="Markdown")
+                    return
+            else:
+                await update.message.reply_text("⚠️ આ યુઝરની Telegram Privacy ના લીધે ID મળી શક્યો નથી.")
+                return
+
+        # CASE B: ઓનરે ડાયરેક્ટ મેસેજ કર્યો (બધાને બ્રોડકાસ્ટ)
+        users, appwrite_err = get_all_users_from_appwrite()
+        
+        if appwrite_err:
+            await update.message.reply_text(f"🚨 Appwrite Fetch Error:\n`{appwrite_err}`", parse_mode="Markdown")
+            return
+            
+        if not users:
+            await update.message.reply_text("⚠️ Appwrite માં 0 યુઝર્સ મળ્યા! ડેટાબેઝ ખાલી છે.")
+            return
+
+        count = 0
+        failed = 0
+        error_details = []
+
+        for uid in users:
+            if int(uid) != OWNER_ID:
+                try:
+                    await context.bot.copy_message(
+                        chat_id=int(uid),
+                        from_chat_id=OWNER_ID,
+                        message_id=update.message.message_id
+                    )
+                    count += 1
+                except Exception as e:
+                    failed += 1
+                    error_details.append(f"ID {uid}: {str(e)}")
+
+        msg = f"✅ સફળતાપૂર્વક મોકલાયા: *{count}*\n❌ નિષ્ફળ ગયા: *{failed}*"
+        if error_details:
+            msg += "\n\n*એરર વિગત:*\n" + "\n".join(error_details[:3])
+            
+        await update.message.reply_text(msg, parse_mode="Markdown")
+
+    # જો સાદો યુઝર મેસેજ કરે (તો ઓનરને ફોરવર્ડ થશે):
+    else:
+        try:
+            await context.bot.forward_message(
+                chat_id=OWNER_ID,
+                from_chat_id=user_id,
+                message_id=update.message.message_id
+            )
+        except Exception as e:
+            print(f"Forward error: {e}")
+
+def main():
+    t = Thread(target=run_flask)
+    t.start()
+
+    print("Bot is starting...")
+    application = ApplicationBuilder().token(TOKEN).build()
+    
+    application.add_handler(CommandHandler("start", start_command))
+    application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
+    
+    application.run_polling()
+
+if __name__ == '__main__':
+    main()            # Safe attribute check for new python-telegram-bot versions
             forward_from = getattr(reply_msg, 'forward_from', None)
             forward_origin = getattr(reply_msg, 'forward_origin', None)
             

@@ -3,13 +3,13 @@ import os
 from threading import Thread
 from flask import Flask
 from telegram import Update
-from telegram.ext import ApplicationBuilder, ContextTypes, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, ContextTypes, CommandHandler, MessageHandler, filters
 
 from appwrite.client import Client
 from appwrite.services.databases import Databases
 from appwrite.query import Query
 
-# --- ૧. Render માટે Web Server સેટઅપ ---
+# --- ૧. Render માટે Web Server ---
 app = Flask('')
 
 @app.route('/')
@@ -20,7 +20,7 @@ def run_flask():
     port = int(os.environ.get("PORT", 8080))
     app.run(host='0.0.0.0', port=port)
 
-# --- ૨. ટેલિગ્રામ અને Appwrite સેટિંગ્સ ---
+# --- ૨. કન્ફિગરેશન ---
 TOKEN = '8857953077:AAFnPRz6smvpPILJHjhG5tyagd6C3YS2-ic'
 OWNER_ID = 6079756619
 
@@ -37,23 +37,26 @@ client.set_key(APPWRITE_API_KEY)
 
 databases = Databases(client)
 
+# Appwrite માં યુઝર ઉમેરવો
 def add_user_to_appwrite(user_id):
     try:
         result = databases.list_documents(
             database_id=DATABASE_ID,
             collection_id=COLLECTION_ID,
-            queries=[Query.equal('user_id', user_id)]
+            queries=[Query.equal('user_id', str(user_id))]
         )
         if result['total'] == 0:
             databases.create_document(
                 database_id=DATABASE_ID,
                 collection_id=COLLECTION_ID,
                 document_id='unique()',
-                data={'user_id': user_id}
+                data={'user_id': str(user_id)}
             )
+            print(f"User {user_id} added successfully!")
     except Exception as e:
-        print(f"Appwrite Error (Add): {e}")
+        print(f"Appwrite Add Error: {e}")
 
+# Appwrite માંથી બધા યુઝર્સના ID મેળવવા
 def get_all_users_from_appwrite():
     try:
         result = databases.list_documents(
@@ -62,15 +65,25 @@ def get_all_users_from_appwrite():
         )
         return [doc['user_id'] for doc in result['documents']]
     except Exception as e:
-        print(f"Appwrite Error (Get): {e}")
+        print(f"Appwrite Get Error: {e}")
         return []
 
-# --- ૩. ટેલિગ્રામ હેન્ડલર ---
-async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+# --- ૩. /start કમાન્ડ ---
+async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = update.effective_user.id
     add_user_to_appwrite(user_id)
+    await update.message.reply_text("હેલો! બોટમાં તમારું સ્વાગત છે.")
+
+# --- ૪. મેસેજ અને ફોટો હેન્ડલર ---
+async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = update.effective_user.id
     
+    # નવા યુઝરને ડેટાબેઝમાં સાચવો
+    add_user_to_appwrite(user_id)
+    
+    # ૧. જો તમે (Owner) કોઈ મેસેજ કે ફોટો મોકલો:
     if user_id == OWNER_ID:
+        # જો તમે યુઝરના ફોરવર્ડ થયેલા મેસેજ પર Reply આપો છો:
         if update.message.reply_to_message and update.message.reply_to_message.forward_from:
             target_user_id = update.message.reply_to_message.forward_from.id
             await context.bot.copy_message(
@@ -78,19 +91,23 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
                 from_chat_id=OWNER_ID,
                 message_id=update.message.message_id
             )
+        # જો તમે Reply આપ્યા વગર ડાયરેક્ટ મેસેજ/ફોટો મૂકો છો:
         else:
             users = get_all_users_from_appwrite()
             for uid in users:
-                if uid != OWNER_ID:
+                if str(uid) != str(OWNER_ID):
                     try:
                         await context.bot.copy_message(
-                            chat_id=uid,
+                            chat_id=int(uid),
                             from_chat_id=OWNER_ID,
                             message_id=update.message.message_id
                         )
-                    except Exception:
-                        pass
+                    except Exception as e:
+                        print(f"Error sending to {uid}: {e}")
+
+    # ૨. જો સામાન્ય યુઝર ફોટો કે મેસેજ મોકલે:
     else:
+        # યુઝરનો મેસેજ/ફોટો તમને સીધો ફોરવર્ડ થશે
         await context.bot.forward_message(
             chat_id=OWNER_ID,
             from_chat_id=user_id,
@@ -98,12 +115,14 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         )
 
 def main():
-    # પૃષ્ઠભૂમિમાં Web Server ચાલુ રાખવું
     t = Thread(target=run_flask)
     t.start()
 
     application = ApplicationBuilder().token(TOKEN).build()
+    
+    application.add_handler(CommandHandler("start", start_command))
     application.add_handler(MessageHandler(filters.ALL & ~filters.COMMAND, handle_message))
+    
     application.run_polling()
 
 if __name__ == '__main__':
